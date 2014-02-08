@@ -11,16 +11,16 @@ CXX?=g++
 LINK=g++
 PROGRAM=a.out
 DEL=rm -rf
-LIBS=-lm -lsfml-graphics -lsfml-window -lsfml-system -lGLU -lGL
+LIBS=-lm -fopenmp
 WARN=-w
-OP=-O0
+OP=-O3
 FLAGS= $(WARN) $(OP)
 
 # setup object list
 LOCAL_CPP_OBJECTS= $(patsubst %.cpp, %.o, $(wildcard ./*.cpp))
 LOCAL_C_OBJECTS= $(patsubst %.c, %.o, $(wildcard ./*.c))
-GLEW_OBJECTS= $(patsubst %.c, %.o, $(wildcard ./glew/*.c)) # glew objects which we will use later
-OBJECTS=$(LOCAL_C_OBJECTS) $(LOCAL_CPP_OBJECTS) $(GLEW_OBJECTS)
+LOADER_OBJECTS= $(patsubst %.c, %.o, $(wildcard ./obj_loader/*.cpp)) # the OBJ loader sub dir
+OBJECTS=$(LOCAL_C_OBJECTS) $(LOCAL_CPP_OBJECTS) $(LOADER_OBJECTS)
 
 # make targets
 makeall:
