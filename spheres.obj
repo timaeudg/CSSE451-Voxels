@@ -1,0 +1,51 @@
+mtllib ./spheres.mtl
+
+#big sphere at bottom
+v 0 -200 0
+vn 0 198 0
+vn 198 0 0
+usemtl big_sphere
+sp -1 -1 -2
+
+#red sphere on left
+v -3 0 0
+vn 0 1 0
+vn 1 0 0
+usemtl red
+sp -1 -1 -2
+
+#green sphere in middle
+v 0 0 0
+vn 0 1 0
+vn 1 0 0
+usemtl green
+sp -1 -1 -2
+
+#blue sphere on right
+v 3 0 0
+vn 0 1 0
+vn 1 0 0
+usemtl blue
+sp -1 -1 -2
+
+# lights
+v -5 15 10
+usemtl light
+lp -1
+
+v 0 10 10
+usemtl light
+lp -1
+
+v 5 15 10
+usemtl light
+lp -1
+
+#camera
+v 3 3 8
+v 0 -2 0
+vn  0 1 0
+g Camera
+c -2 -1 -1
+
+
