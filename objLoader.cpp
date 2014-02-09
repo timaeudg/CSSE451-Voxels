@@ -15,6 +15,7 @@ int objLoader::load(char *filename)
 		this->faceCount = data.face_count;
 		this->sphereCount = data.sphere_count;
 		this->planeCount = data.plane_count;
+		this->voxelCount = data.voxel_count;
 
 		this->lightPointCount = data.light_point_count;
 		this->lightDiscCount = data.light_disc_count;

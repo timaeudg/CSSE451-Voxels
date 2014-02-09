@@ -18,6 +18,7 @@ public:
 	obj_vector **normalList;
 	obj_vector **textureList;
 	
+	obj_voxel **voxelList;
 	obj_face **faceList;
 	obj_sphere **sphereList;
 	obj_plane **planeList;
@@ -32,6 +33,7 @@ public:
 	int normalCount;
 	int textureCount;
 
+	int voxelCount;
 	int faceCount;
 	int sphereCount;
 	int planeCount;

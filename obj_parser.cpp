@@ -49,6 +49,7 @@ void obj_set_material_defaults(obj_material *mtl)
 	mtl->trans = 1;
 	mtl->glossy = 98;
 	mtl->shiny = 0;
+	mtl->rad = 1;
 	mtl->refract_index = 1;
 	mtl->texture_filename[0] = '\0';
 }
@@ -92,6 +93,20 @@ int obj_parse_vertex_index(int *vertex_index, int *texture_index, int *normal_in
 
 	return vertex_count;
 }
+
+obj_voxel* obj_parse_voxel(obj_growable_scene_data *scene)
+{
+	int temp_indices[MAX_VERTEX_COUNT];
+	
+	obj_voxel *obj = (obj_voxel*)malloc(sizeof(obj_voxel));
+	
+	obj_parse_vertex_index(temp_indices, obj->texture_index, NULL);
+	obj_convert_to_list_index_v(scene->vertex_texture_list.item_count, obj->texture_index);
+	obj->pos_index = obj_convert_to_list_index(scene->vertex_list.item_count, temp_indices[0]);
+	
+	return obj;
+}
+	
 
 obj_face* obj_parse_face(obj_growable_scene_data *scene)
 {
@@ -274,6 +289,11 @@ int obj_parse_mtl_file(char *filename, list *material_list)
 		{
 			current_mtl->glossy = atof( strtok(NULL, " \t"));
 		}
+		//radius
+		else if( strequal(current_token, "rad") && material_open)
+		{
+			current_mtl->rad = atof( strtok(NULL, " \t"));
+		}
 		//refract index
 		else if( strequal(current_token, "Ni") && material_open)
 		{
@@ -353,6 +373,13 @@ int obj_parse_obj_file(obj_growable_scene_data *growable_data, char *filename)
 		else if( strequal(current_token, "vt") ) //process vertex texture
 		{
 			list_add_item(&growable_data->vertex_texture_list,  obj_parse_vector(), NULL);
+		}
+		
+		else if( strequal(current_token, "x") ) //process voxel
+		{
+			obj_voxel *vox = obj_parse_voxel(growable_data);
+			vox->material_index = current_material;
+			list_add_item(&growable_data->voxel_list, vox, NULL);
 		}
 		
 		else if( strequal(current_token, "f") ) //process face
@@ -446,6 +473,7 @@ void obj_init_temp_storage(obj_growable_scene_data *growable_data)
 	list_make(&growable_data->vertex_normal_list, 10, 1);
 	list_make(&growable_data->vertex_texture_list, 10, 1);
 	
+	list_make(&growable_data->voxel_list, 10, 1);
 	list_make(&growable_data->face_list, 10, 1);
 	list_make(&growable_data->sphere_list, 10, 1);
 	list_make(&growable_data->plane_list, 10, 1);
@@ -465,6 +493,7 @@ void obj_free_temp_storage(obj_growable_scene_data *growable_data)
 	obj_free_half_list(&growable_data->vertex_normal_list);
 	obj_free_half_list(&growable_data->vertex_texture_list);
 	
+	obj_free_half_list(&growable_data->voxel_list);
 	obj_free_half_list(&growable_data->face_list);
 	obj_free_half_list(&growable_data->sphere_list);
 	obj_free_half_list(&growable_data->plane_list);
@@ -490,6 +519,8 @@ void delete_obj_data(obj_scene_data *data_out)
 		free(data_out->vertex_texture_list[i]);
 	free(data_out->vertex_texture_list);
 
+	for(i=0; i<data_out->voxel_count; i++)
+		free(data_out->voxel_list[i]);
 	for(i=0; i<data_out->face_count; i++)
 		free(data_out->face_list[i]);
 	free(data_out->face_list);
@@ -523,6 +554,7 @@ void obj_copy_to_out_storage(obj_scene_data *data_out, obj_growable_scene_data *
 	data_out->vertex_normal_count = growable_data->vertex_normal_list.item_count;
 	data_out->vertex_texture_count = growable_data->vertex_texture_list.item_count;
 
+	data_out->voxel_count = growable_data->voxel_list.item_count;
 	data_out->face_count = growable_data->face_list.item_count;
 	data_out->sphere_count = growable_data->sphere_list.item_count;
 	data_out->plane_count = growable_data->plane_list.item_count;
@@ -537,6 +569,7 @@ void obj_copy_to_out_storage(obj_scene_data *data_out, obj_growable_scene_data *
 	data_out->vertex_normal_list = (obj_vector**)growable_data->vertex_normal_list.items;
 	data_out->vertex_texture_list = (obj_vector**)growable_data->vertex_texture_list.items;
 
+	data_out->voxel_list = (obj_voxel**)growable_data->voxel_list.items;
 	data_out->face_list = (obj_face**)growable_data->face_list.items;
 	data_out->sphere_list = (obj_sphere**)growable_data->sphere_list.items;
 	data_out->plane_list = (obj_plane**)growable_data->plane_list.items;

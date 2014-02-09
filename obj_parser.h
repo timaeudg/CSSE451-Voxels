@@ -8,6 +8,13 @@
 #define OBJ_LINE_SIZE 500
 #define MAX_VERTEX_COUNT 4 //can only handle quads or triangles
 
+typedef struct obj_voxel
+{
+	int pos_index;
+	int texture_index[MAX_VERTEX_COUNT];
+	int material_index;
+} obj_voxel;
+
 typedef struct obj_face
 {
 	int vertex_index[MAX_VERTEX_COUNT];
@@ -52,6 +59,7 @@ typedef struct obj_material
 	double trans;
 	double shiny;
 	double glossy;
+	double rad;
 	double refract_index;
 } obj_material;
 
@@ -91,6 +99,7 @@ typedef struct obj_growable_scene_data
 	list vertex_normal_list;
 	list vertex_texture_list;
 	
+	list voxel_list;
 	list face_list;
 	list sphere_list;
 	list plane_list;
@@ -110,6 +119,7 @@ typedef struct obj_scene_data
 	obj_vector **vertex_normal_list;
 	obj_vector **vertex_texture_list;
 	
+	obj_voxel **voxel_list;
 	obj_face **face_list;
 	obj_sphere **sphere_list;
 	obj_plane **plane_list;
@@ -124,6 +134,7 @@ typedef struct obj_scene_data
 	int vertex_normal_count;
 	int vertex_texture_count;
 
+	int voxel_count;	
 	int face_count;
 	int sphere_count;
 	int plane_count;
