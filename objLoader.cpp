@@ -30,6 +30,7 @@ int objLoader::load(char *filename)
 		this->faceList = data.face_list;
 		this->sphereList = data.sphere_list;
 		this->planeList = data.plane_list;
+		this->voxelList = data.voxel_list;
 
 		this->lightPointList = data.light_point_list;
 		this->lightDiscList = data.light_disc_list;
