@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
     objLoader objData = objLoader();
     objData.load(argv[1]);
     
-    Scene scene = loadScene(&objData, true);
+    Scene scene = loadScene(&objData, false);
     printf("scene loaded\n");
     
     RayGenerator rayGen = RayGenerator(scene.getCamera(), width, height, 90.0);
@@ -88,6 +88,7 @@ Vector3 getColor(Ray &ray, Hitpoint &hit, Scene &scene, float paramVal, float cu
     Vector3 hitLoc = ray.pointAtParameterValue(paramVal);
     Vector3 viewToCamera = (scene.getCamera()->getPos() - hitLoc).normalize();
     Vector3 norm = hit.getNormal();
+//    return Vector3(abs(norm[0]), abs(norm[1]), abs(norm[2]));
     
     //grab material and material values
     Material hitObjMat = scene.getMaterial(hit.getSurface()->getMaterialIndex());
@@ -177,7 +178,7 @@ bool traceShadowRay(Scene &scene, Ray &ray, float lightDist){
     return false;
 }
 
-Scene loadScene(objLoader* objData, bool voxelize=false){
+Scene loadScene(objLoader* objData, bool voxelize){
     Camera camera;
     std::vector<Material> materials = std::vector<Material>();
     std::vector<AbstractSurface*> surfaces = std::vector<AbstractSurface*>();
@@ -242,6 +243,21 @@ Scene loadScene(objLoader* objData, bool voxelize=false){
             
             Material mat = Material(ambColor, diffColor, specColor, exponent, reflection);
             materials.push_back(mat);
+        }
+    }
+
+    if((*objData).voxelCount > 0 && (*objData).voxelList != NULL){
+        for(int i = 0; i < (*objData).voxelCount; i++){
+            printf("voxel #%i\n", i);
+            float voxX = (*objData).vertexList[ (*objData).voxelList[i]->pos_index ]->e[0];
+            float voxY = (*objData).vertexList[ (*objData).voxelList[i]->pos_index ]->e[1];
+            float voxZ = (*objData).vertexList[ (*objData).voxelList[i]->pos_index ]->e[2];
+            printf("x,y,z: %f,%f,%f\n", voxX, voxY, voxZ);
+            printf("x,y,z: %f,%f,%f\n", voxX, voxY, voxZ);
+            Vector3 voxPos = Vector3(voxX, voxY, voxZ);
+            int materialIndex = (*objData).voxelList[i]->material_index;
+            AABB* voxel = new AABB(voxPos, materialIndex, materials[materialIndex].getRadius()); 
+            surfaces.push_back(voxel);
         }
     }
 

@@ -10,11 +10,21 @@ class AABB : public AbstractSurface{
         AABB(){
             this->max = Vector3(-FLT_MAX,-FLT_MAX, -FLT_MAX);
             this->min = Vector3(FLT_MAX, FLT_MAX, FLT_MAX);
+            this->materialIndex = 0;
         }
 
         AABB(Vector3 min, Vector3 max){
             this->min = min;
             this->max = max;
+            this->materialIndex = 0;
+        }
+
+        AABB(Vector3 centerPoint, int materialIndex, float radius){
+            this->materialIndex = materialIndex;
+            printf("radius: %f\n", radius);
+
+            this->max = Vector3(centerPoint[0]+radius, centerPoint[1]+radius, centerPoint[2]+radius);
+            this->min = Vector3(centerPoint[0]-radius, centerPoint[1]-radius, centerPoint[2]-radius);
         }
 
         ~AABB(){}
@@ -65,6 +75,7 @@ class AABB : public AbstractSurface{
         }
 
         float checkIntersection(Ray ray){
+
             Vector3 origin = ray.getOrigin();
             float oX = origin[0];
             float oY = origin[1];
@@ -139,11 +150,16 @@ class AABB : public AbstractSurface{
                return Vector3(0.0f,0.0f,1.0f);
            }
         }
+
+        int getMaterialIndex(){
+            return this->materialIndex;
+        }
         
 
     private:
         Vector3 max;
         Vector3 min;
+        int materialIndex;
         
         Vector2 getIntersection(float minA, float maxA, float minB, float maxB){
             float resultMax;
