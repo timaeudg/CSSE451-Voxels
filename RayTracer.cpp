@@ -88,7 +88,7 @@ Vector3 getColor(Ray &ray, Hitpoint &hit, Scene &scene, float paramVal, float cu
     Vector3 hitLoc = ray.pointAtParameterValue(paramVal);
     Vector3 viewToCamera = (scene.getCamera()->getPos() - hitLoc).normalize();
     Vector3 norm = hit.getNormal();
-//    return Vector3(abs(norm[0]), abs(norm[1]), abs(norm[2]));
+    //return Vector3(abs(norm[0]), abs(norm[1]), abs(norm[2]));
     
     //grab material and material values
     Material hitObjMat = scene.getMaterial(hit.getSurface()->getMaterialIndex());
@@ -139,7 +139,7 @@ Vector3 getColor(Ray &ray, Hitpoint &hit, Scene &scene, float paramVal, float cu
 
     float reflectAmount = hitObjMat.getReflect();
     Vector3 viewReflection = (2*(viewToCamera.dot(norm))*norm - viewToCamera).normalize();
-    Ray reflectionRay = Ray(hit.getHitpoint(0.9f), viewReflection);
+    Ray reflectionRay = Ray(hit.getHitpoint(0.999f), viewReflection);
     bool hitSomething = scene.getHitpoint(&reflectionRay, &hitpointParam, &hitpointSurface);
     
     if(hitSomething && reflectAmount>0){
@@ -159,6 +159,10 @@ Vector3 getColor(Ray &ray, Hitpoint &hit, Scene &scene, float paramVal, float cu
         Vector3 absorbedPart = (1.0f - reflectAmount)*summedColor;
         summedColor = reflectedPart + absorbedPart;
 
+    } else if(reflectAmount > 0){
+        Vector3 reflectedPart = reflectAmount*Vector3(0,0,0);
+        Vector3 absorbedPart = (1.0f - reflectAmount)*summedColor;
+        summedColor = reflectedPart + absorbedPart;
     }
     
     return summedColor;

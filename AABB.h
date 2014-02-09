@@ -73,7 +73,7 @@ class AABB : public AbstractSurface{
             axisVector[2] = max[2]-min[2];
             return axisVector;
         }
-
+/*
         float checkIntersection(Ray ray){
 
             Vector3 origin = ray.getOrigin();
@@ -129,6 +129,51 @@ class AABB : public AbstractSurface{
                 return intersection[1];
             }
         }
+*/      
+
+        float checkIntersection(Ray ray){
+            const size_t vecDim = 3;
+            float entrance = 0.0f;
+            float exit = FLT_MAX;
+            Vector3 normal = Vector3(0,0,0);
+
+            for(int i = 0; i<vecDim; i++){
+                float slabA = this->min[i];
+                float slabB = this->max[i];
+                float invDir = 1.0f / ray.getDirection()[i];
+                float origin = ray.getOrigin()[i];
+
+                float closestHit = (slabA - origin) * invDir;
+                float farthestHit = (slabB - origin) * invDir;
+
+                if(farthestHit < closestHit){
+                    std::swap(closestHit, farthestHit);
+                }
+
+                bool tooClose = farthestHit < entrance;
+                bool tooFar = closestHit > exit;
+
+                if(tooClose || tooFar){
+                    //printf("closest,exit %f,%f\n", closestHit, exit);
+                    //printf("no hit\n");
+                    return -1.0;
+                }
+
+                bool foundNewEntrance = closestHit > entrance;
+                entrance = foundNewEntrance ? closestHit : entrance;
+
+                bool foundNewExit = farthestHit < exit;
+                exit = foundNewExit ? farthestHit : exit;
+            }
+            /*
+            if(entrance == 0.0f){
+                printf("hit; entrance: %f\n", entrance);
+                return -1.0;
+            }
+            */
+            return entrance;
+        }
+
 
         Vector3 getNormal(Vector3 hitpoint){
            if(hitpoint[0] == this->max[0]){
