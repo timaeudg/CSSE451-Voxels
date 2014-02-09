@@ -1,0 +1,38 @@
+mtllib ./voxel.mtl
+
+#red sphere on left
+v -3 0 0
+usemtl red
+x -1
+
+#green sphere in middle
+v 0 0 0
+usemtl green
+x -1
+
+#blue sphere on right
+v 3 0 0
+usemtl blue
+x -1
+
+# lights
+v -5 15 10
+usemtl light
+lp -1
+
+v 0 10 10
+usemtl light
+lp -1
+
+v 5 15 10
+usemtl light
+lp -1
+
+#camera
+v 3 3 8
+v 0 -2 0
+vn  0 1 0
+g Camera
+c -2 -1 -1
+
+
