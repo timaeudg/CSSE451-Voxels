@@ -8,8 +8,8 @@ class AABB : public AbstractSurface{
 
     public:
         AABB(){
-            this->min = Vector3(0,0,0);
-            this->max = Vector3(0,0,0);
+            this->max = Vector3(-FLT_MAX,-FLT_MAX, -FLT_MAX);
+            this->min = Vector3(FLT_MAX, FLT_MAX, FLT_MAX);
         }
 
         AABB(Vector3 min, Vector3 max){
@@ -53,6 +53,7 @@ class AABB : public AbstractSurface{
             if(shapeMin[2] < min[2]){
                 this->min[2] = shapeMin[2];
             }
+
         }
         
         Vector3 getAxisLengths(){
@@ -111,11 +112,32 @@ class AABB : public AbstractSurface{
             
             //printf("AABB intersection: %f,%f\n", intersection[0], intersection[1]);
 
-            if(intersection[0] > intersection[1]){
+            if(intersection[0] < intersection[1]){
                 return intersection[0];
             } else { 
                 return intersection[1];
             }
+        }
+
+        Vector3 getNormal(Vector3 hitpoint){
+           if(hitpoint[0] == this->max[0]){
+               return Vector3(1.0f,0.0f,0.0f);
+           }
+           if(hitpoint[0] == this->min[0]){
+               return Vector3(-1.0f,0.0f,0.0f);
+           }
+           if(hitpoint[1] == this->min[1]){
+               return Vector3(0.0f,-1.0f,0.0f);
+           }
+           if(hitpoint[1] == this->max[1]){
+               return Vector3(0.0f,1.0f,0.0f);
+           }
+           if(hitpoint[2] == this->min[2]){
+               return Vector3(0.0f,0.0f,-1.0f);
+           }
+           if(hitpoint[2] == this->max[2]){
+               return Vector3(0.0f,0.0f,1.0f);
+           }
         }
         
 

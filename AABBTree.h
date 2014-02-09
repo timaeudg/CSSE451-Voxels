@@ -12,8 +12,8 @@ public:
         
     }
     
-    AABBTree(std::vector<AbstractSurface*> surfaces){
-        AABBNode* head = createTree(surfaces);
+    AABBTree(std::vector<AbstractSurface*> surfaces, bool voxelize=false){
+        AABBNode* head = createTree(surfaces, voxelize);
         this->root = head;
     }
     
@@ -26,7 +26,7 @@ public:
 private:
     AABBNode* root;
     
-    AABBNode* createTree(std::vector<AbstractSurface*> surfaces){
+    AABBNode* createTree(std::vector<AbstractSurface*> surfaces, bool voxelize=false){
         AABB* boundingBox = new AABB();
         for(int j = 0; j < surfaces.size(); j++){
             boundingBox->expandBox(*surfaces[j]);
@@ -55,11 +55,14 @@ private:
                 right.push_back(sortedSurfaces[j]);
             }
 
-            AABBNode* leftNode = createTree(left);
-            AABBNode* rightNode = createTree(right);
+            AABBNode* leftNode = createTree(left, voxelize);
+            AABBNode* rightNode = createTree(right, voxelize);
             AABBNode* parent = new AABBNode(boundingBox, leftNode, rightNode);
             return parent;
-        } else {
+        } else if(voxelize){
+            AABBNode* leaf = new AABBNode((AbstractSurface*)boundingBox, NULL, NULL);
+            return leaf;
+        } else{
             //base case
             AABBNode* leaf = new AABBNode(surfaces[0], NULL, NULL);
             return leaf;

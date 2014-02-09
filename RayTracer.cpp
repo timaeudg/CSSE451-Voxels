@@ -24,7 +24,7 @@
 
 Vector3 getColor(Ray &ray, Hitpoint &hit, Scene &scene, float paramVal, float cumulativePercent);
 bool traceShadowRay(Scene &scene, Ray &ray, float lightDist);
-Scene loadScene(objLoader* objData);
+Scene loadScene(objLoader* objData, bool voxelize);
 
 int main(int argc, char ** argv)
 {
@@ -51,7 +51,8 @@ int main(int argc, char ** argv)
     objLoader objData = objLoader();
     objData.load(argv[1]);
     
-    Scene scene = loadScene(&objData);
+    Scene scene = loadScene(&objData, true);
+    printf("scene loaded\n");
     
     RayGenerator rayGen = RayGenerator(scene.getCamera(), width, height, 90.0);
     #pragma omp parallel for
@@ -176,7 +177,7 @@ bool traceShadowRay(Scene &scene, Ray &ray, float lightDist){
     return false;
 }
 
-Scene loadScene(objLoader* objData){
+Scene loadScene(objLoader* objData, bool voxelize=false){
     Camera camera;
     std::vector<Material> materials = std::vector<Material>();
     std::vector<AbstractSurface*> surfaces = std::vector<AbstractSurface*>();
@@ -308,6 +309,6 @@ Scene loadScene(objLoader* objData){
         }
     }
 
-    return Scene(camera, surfaces, materials, lights);
+    return Scene(camera, surfaces, materials, lights, voxelize);
 }
 

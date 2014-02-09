@@ -14,7 +14,7 @@ class Scene{
     public:
         Scene(){}
         
-        Scene(Camera cam, std::vector<AbstractSurface*> surfaces, std::vector<Material> mats, std::vector<Light*> lights){
+        Scene(Camera cam, std::vector<AbstractSurface*> surfaces, std::vector<Material> mats, std::vector<Light*> lights, bool voxelize=false){
             this->cam = cam;
             this->surfaces = surfaces;
             this->materials = mats;
@@ -22,7 +22,7 @@ class Scene{
             //get bb max & min
             this->sceneBBMin = getSceneBBMin(surfaces);
             this->sceneBBMax = getSceneBBMax(surfaces);
-            this->sceneTree = AABBTree(this->surfaces);
+            this->sceneTree = AABBTree(this->surfaces, voxelize);
         }
         
         Camera* getCamera(){
@@ -42,25 +42,6 @@ class Scene{
         }
         
         bool getHitpoint(Ray* newRay, float* intersected, AbstractSurface** shapeIndex){
-            /*
-            float smallestIntersected = FLT_MAX;
-            int index = -1;
-            for(int j = 0; j<surfaces.size(); j++){
-                AbstractSurface* current = surfaces[j];
-                float intersected = current->checkIntersection(*newRay);
-                if(intersected>=0){
-                    if(intersected < smallestIntersected){
-                        smallestIntersected = intersected;
-                        index = j;
-                    }
-                }
-            }
-            if(index>=0){
-                *intersected = smallestIntersected;
-                *shapeIndex = surfaces[index];
-                return true;
-            }
-            */
             float intersectedVal = -1.0f;
             AbstractSurface* surface = this->sceneTree.getIntersection(*newRay, &intersectedVal);
 
