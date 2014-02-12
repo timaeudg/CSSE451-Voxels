@@ -20,11 +20,18 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctime>
+#include <string>
+#include <fstream>
+#include <iostream>
 
+using namespace std;
+
+typedef unsigned char byte;
+
+vector<byte>* read_binvox(string filespec, int* dim);
 Vector3 getColor(Ray &ray, Hitpoint &hit, Scene &scene, float paramVal, float cumulativePercent);
 bool traceShadowRay(Scene &scene, Ray &ray, float lightDist);
-Scene loadScene(objLoader* objData, bool voxelize);
+Scene loadScene(objLoader* objData, char* filename);
 
 int main(int argc, char ** argv)
 {
@@ -33,28 +40,28 @@ int main(int argc, char ** argv)
     int height = 1080;
 
     //need at least one argument (obj file)
-    if(argc < 2)
+    if(argc < 3)
     {
-        printf("Usage %s filename.obj\n", argv[0]);
+        printf("Usage %s filename.obj, filename.binvox\n", argv[0]);
         exit(0);
     }
 
-    if(argc >= 3){
-        width = atoi(argv[2]);
-        if(argc == 4){
-            height = atoi(argv[3]);
+    if(argc >= 4){
+        width = atoi(argv[3]);
+        if(argc == 5){
+            height = atoi(argv[4]);
         }
     }
     ToneMapper buf = ToneMapper(width, height);
-    
     //load camera data
+    
     objLoader objData = objLoader();
     objData.load(argv[1]);
     
-    Scene scene = loadScene(&objData, false);
+    Scene scene = loadScene(&objData, argv[2]);
     printf("scene loaded\n");
-    
-    RayGenerator rayGen = RayGenerator(scene.getCamera(), width, height, 90.0);
+
+    RayGenerator rayGen = RayGenerator(*scene.getCamera(), width, height, 90.0);
     #pragma omp parallel for
     for(int i = 0; i<width; i++){
         for(int k = 0; k<height; k++){
@@ -79,7 +86,7 @@ int main(int argc, char ** argv)
     Buffer mappedBuf = buf.toneMap();
 
     simplePPM_write_ppm("test.ppm", mappedBuf.getWidth(), mappedBuf.getHeight(), (unsigned char*)&mappedBuf.at(0,0));
-
+    
     return 0;
 }
 
@@ -119,7 +126,7 @@ Vector3 getColor(Ray &ray, Hitpoint &hit, Scene &scene, float paramVal, float cu
         
         //Shadow code
         //get the offset location to prevent shadow acne
-        Vector3 offsetHitLoc = hit.getHitpoint(0.999f);
+        Vector3 offsetHitLoc = hit.getHitpoint(0.9999f);
         Ray shadowRay = Ray(offsetHitLoc, lightDir);
         float lightDist = (light->getPos() - offsetHitLoc).squaredLength();
 
@@ -132,6 +139,7 @@ Vector3 getColor(Ray &ray, Hitpoint &hit, Scene &scene, float paramVal, float cu
         summedColor = summedColor + combinedColor;
     }
 
+    /*
     //Reflection code
     Vector3 reflectColor = Vector3(0,0,0);
     AbstractSurface* hitpointSurface;
@@ -164,7 +172,7 @@ Vector3 getColor(Ray &ray, Hitpoint &hit, Scene &scene, float paramVal, float cu
         Vector3 absorbedPart = (1.0f - reflectAmount)*summedColor;
         summedColor = reflectedPart + absorbedPart;
     }
-    
+    */
     return summedColor;
 }
 
@@ -182,7 +190,7 @@ bool traceShadowRay(Scene &scene, Ray &ray, float lightDist){
     return false;
 }
 
-Scene loadScene(objLoader* objData, bool voxelize){
+Scene loadScene(objLoader* objData, char* filename){
     Camera camera;
     std::vector<Material> materials = std::vector<Material>();
     std::vector<AbstractSurface*> surfaces = std::vector<AbstractSurface*>();
@@ -250,68 +258,6 @@ Scene loadScene(objLoader* objData, bool voxelize){
         }
     }
 
-    if((*objData).voxelCount > 0 && (*objData).voxelList != NULL){
-        for(int i = 0; i < (*objData).voxelCount; i++){
-            printf("voxel #%i\n", i);
-            float voxX = (*objData).vertexList[ (*objData).voxelList[i]->pos_index ]->e[0];
-            float voxY = (*objData).vertexList[ (*objData).voxelList[i]->pos_index ]->e[1];
-            float voxZ = (*objData).vertexList[ (*objData).voxelList[i]->pos_index ]->e[2];
-            printf("x,y,z: %f,%f,%f\n", voxX, voxY, voxZ);
-            printf("x,y,z: %f,%f,%f\n", voxX, voxY, voxZ);
-            Vector3 voxPos = Vector3(voxX, voxY, voxZ);
-            int materialIndex = (*objData).voxelList[i]->material_index;
-            AABB* voxel = new AABB(voxPos, materialIndex, materials[materialIndex].getRadius()); 
-            surfaces.push_back(voxel);
-        }
-    }
-
-    if((*objData).sphereCount > 0 && (*objData).sphereList != NULL){
-        for(int i = 0; i < (*objData).sphereCount; i++){
-            float sphereX =  (*objData).vertexList[ (*objData).sphereList[i]->pos_index ]->e[0];
-            float sphereY =  (*objData).vertexList[ (*objData).sphereList[i]->pos_index ]->e[1];
-            float sphereZ =  (*objData).vertexList[ (*objData).sphereList[i]->pos_index ]->e[2];
-
-            Vector3 spherePos = Vector3(sphereX, sphereY, sphereZ);
-
-            float xUp = (*objData).normalList [ (*objData).sphereList[i]->up_normal_index ]->e[0];
-            float yUp = (*objData).normalList [ (*objData).sphereList[i]->up_normal_index ]->e[1];
-            float zUp = (*objData).normalList [ (*objData).sphereList[i]->up_normal_index ]->e[2];
-
-            Vector3 sphereUp = Vector3(xUp, yUp, zUp);
-
-            float radius = sphereUp.length();
-            int materialIndex = (*objData).sphereList[i]->material_index;
-
-            Sphere* sphere = new Sphere(spherePos, radius, materialIndex);
-            surfaces.push_back(sphere);
-        }
-    }
-
-    if((*objData).faceCount > 0 && (*objData).faceList != NULL){
-        for(int i = 0; i < (*objData).faceCount; i++){
-            float p1X = (*objData).vertexList[ (*objData).faceList[i]->vertex_index[0] ]->e[0];
-            float p1Y = (*objData).vertexList[ (*objData).faceList[i]->vertex_index[0] ]->e[1];
-            float p1Z = (*objData).vertexList[ (*objData).faceList[i]->vertex_index[0] ]->e[2];
-
-            float p2X = (*objData).vertexList[ (*objData).faceList[i]->vertex_index[1] ]->e[0];
-            float p2Y = (*objData).vertexList[ (*objData).faceList[i]->vertex_index[1] ]->e[1];
-            float p2Z = (*objData).vertexList[ (*objData).faceList[i]->vertex_index[1] ]->e[2];
-
-            float p3X = (*objData).vertexList[ (*objData).faceList[i]->vertex_index[2] ]->e[0];
-            float p3Y = (*objData).vertexList[ (*objData).faceList[i]->vertex_index[2] ]->e[1];
-            float p3Z = (*objData).vertexList[ (*objData).faceList[i]->vertex_index[2] ]->e[2];
-
-            Vector3 p1 = Vector3(p1X, p1Y, p1Z);
-            Vector3 p2 = Vector3(p2X, p2Y, p2Z);
-            Vector3 p3 = Vector3(p3X, p3Y, p3Z);
-
-            int materialIndex = (*objData).faceList[i]->material_index;
-
-            Triangle* tri = new Triangle(p1, p2, p3, materialIndex);
-            surfaces.push_back(tri);
-        }
-    }
-
     if((*objData).lightPointCount > 0 && (*objData).lightPointList != NULL){
         for(int i = 0; i < (*objData).lightPointCount; i++){
            float posX = (*objData).vertexList[ (*objData).lightPointList[i]->pos_index ]->e[0]; 
@@ -329,6 +275,128 @@ Scene loadScene(objLoader* objData, bool voxelize){
         }
     }
 
-    return Scene(camera, surfaces, materials, lights, voxelize);
+    int dim = 0;
+    vector<byte>* voxels = read_binvox(filename, &dim);
+
+    printf("size of vector: %i\n", dim);
+    Vector3 voxPos = Vector3(0,0,0);
+    for(int i = 0; i<dim; i++){
+        for(int j = 0; j<dim; j++){
+            for(int k = 0; k<dim; k++){
+                byte to_print = (*voxels)[i * dim*dim + k*dim + j];
+                if(to_print == 1){
+                    voxPos = Vector3((float)i, (float)j, (float)k);
+                    AABB* voxel = new AABB(voxPos, 0, 0.5);
+                    surfaces.push_back(voxel);
+                }
+            }
+        }
+    }
+
+    printf("at least one voxel at: %f,%f,%f\n", voxPos[0], voxPos[1], voxPos[2]);
+
+    printf("Created %i Voxels\n", surfaces.size());
+    return Scene(camera, surfaces, materials, lights);
 }
 
+
+vector<byte>* read_binvox(string filespec, int* dim){
+    int version;
+    int depth, height, width;
+    int size;
+    float tx, ty, tz;
+    float scale;
+    byte* voxels = 0;
+
+    ifstream *input = new ifstream(filespec.c_str(), ios::in | ios::binary);
+
+    //
+    // read header
+    //
+    string line;
+    *input >> line;  // #binvox
+    if (line.compare("#binvox") != 0) {
+        cout << "Error: first line reads [" << line << "] instead of [#binvox]" << endl;
+        delete input;
+        return 0;
+  }
+    *input >> version;
+    cout << "reading binvox version " << version << endl;
+
+    depth = -1;
+    int done = 0;
+    while(input->good() && !done) {
+        *input >> line;
+        if (line.compare("data") == 0) done = 1;
+        else if (line.compare("dim") == 0) {
+            *input >> depth >> height >> width;
+        }
+        else if (line.compare("translate") == 0) {
+            *input >> tx >> ty >> tz;
+        }
+        else if (line.compare("scale") == 0) {
+            *input >> scale;
+        }
+        else {
+            cout << "  unrecognized keyword [" << line << "], skipping" << endl;
+            char c;
+            do {  // skip until end of line
+                c = input->get();
+            } while(input->good() && (c != '\n'));
+
+        }
+    }
+    if (!done) {
+        cout << "  error reading header" << endl;
+        return 0;
+    }
+    if (depth == -1) {
+        cout << "  missing dimensions in header" << endl;
+        return 0;
+    }
+
+    size = width * height * depth;
+    *dim = depth;
+    
+    voxels = new byte[size];
+    if (!voxels) {
+        cout << "  error allocating memory" << endl;
+        return 0;
+    }
+    
+
+    //
+    // read voxel data
+    //
+    byte value;
+    byte count;
+    int index = 0;
+    int end_index = 0;
+    int nr_voxels = 0;
+  
+    input->unsetf(ios::skipws);  // need to read every byte now (!)
+    *input >> value;  // read the linefeed char
+
+    while((end_index < size) && input->good()) {
+        *input >> value >> count;
+
+        if (input->good()) {
+            end_index = index + count;
+            if (end_index > size) return 0;
+            for(int i=index; i < end_index; i++){
+                voxels[i] = value;
+            }
+      
+            if (value) nr_voxels += count;
+                index = end_index;
+            }  // if file still ok
+    
+    }  // while
+
+    input->close();
+    cout << "  read " << nr_voxels << " voxels" << endl;
+    printf("number of voxels: %i\n", index);
+    vector<byte>* voxelVector = new vector<byte>(voxels, voxels + index);
+    free(voxels);
+    return voxelVector;
+}

@@ -14,7 +14,7 @@ class Scene{
     public:
         Scene(){}
         
-        Scene(Camera cam, std::vector<AbstractSurface*> surfaces, std::vector<Material> mats, std::vector<Light*> lights, bool voxelize=false){
+        Scene(Camera cam, std::vector<AbstractSurface*> surfaces, std::vector<Material> mats, std::vector<Light*> lights){
             this->cam = cam;
             this->surfaces = surfaces;
             this->materials = mats;
@@ -22,16 +22,14 @@ class Scene{
             //get bb max & min
             this->sceneBBMin = getSceneBBMin(surfaces);
             this->sceneBBMax = getSceneBBMax(surfaces);
-            this->sceneTree = AABBTree(this->surfaces, voxelize);
+
+            this->sceneTree = AABBTree(this->surfaces);
         }
         
         Camera* getCamera(){
             return &this->cam;
         }
         
-        std::vector<AbstractSurface*>* getSurfaces(){
-            return &this->surfaces;
-        }
 
         Material getMaterial(int index){
             return this->materials[index];
@@ -42,6 +40,26 @@ class Scene{
         }
         
         bool getHitpoint(Ray* newRay, float* intersected, AbstractSurface** shapeIndex){
+            /*
+            float intersectedVal = FLT_MAX;
+            int index = -1;
+            for(int i = 0; i< this->surfaces.size(); i++){
+                AbstractSurface* current = surfaces[i];
+                float intersect = current->checkIntersection(*newRay);
+                if(intersect >= 0){
+                    if(intersect < intersectedVal){
+                        intersectedVal = intersect;
+                        index = i;
+                    }
+                }
+            }
+
+            if(index >= 0){
+                *intersected = intersectedVal;
+                *shapeIndex = surfaces[index];
+                return true;
+            }
+            */
             float intersectedVal = -1.0f;
             AbstractSurface* surface = this->sceneTree.getIntersection(*newRay, &intersectedVal);
 
@@ -50,7 +68,6 @@ class Scene{
                 *shapeIndex = surface;
                 return true;
             }
-            
             return false;
             
         }

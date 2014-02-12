@@ -12,7 +12,7 @@ LINK=g++
 PROGRAM=a.out
 DEL=rm -rf
 LIBS=-lm -fopenmp
-WARN=-w
+WARN=-w -g
 OP=-O3
 FLAGS= $(WARN) $(OP)
 

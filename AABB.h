@@ -21,7 +21,6 @@ class AABB : public AbstractSurface{
 
         AABB(Vector3 centerPoint, int materialIndex, float radius){
             this->materialIndex = materialIndex;
-            printf("radius: %f\n", radius);
 
             this->max = Vector3(centerPoint[0]+radius, centerPoint[1]+radius, centerPoint[2]+radius);
             this->min = Vector3(centerPoint[0]-radius, centerPoint[1]-radius, centerPoint[2]-radius);
@@ -73,7 +72,7 @@ class AABB : public AbstractSurface{
             axisVector[2] = max[2]-min[2];
             return axisVector;
         }
-/*
+
         float checkIntersection(Ray ray){
 
             Vector3 origin = ray.getOrigin();
@@ -129,8 +128,8 @@ class AABB : public AbstractSurface{
                 return intersection[1];
             }
         }
-*/      
-
+     
+/*
         float checkIntersection(Ray ray){
             const size_t vecDim = 3;
             float entrance = 0.0f;
@@ -165,16 +164,15 @@ class AABB : public AbstractSurface{
                 bool foundNewExit = farthestHit < exit;
                 exit = foundNewExit ? farthestHit : exit;
             }
-            /*
+            
             if(entrance == 0.0f){
                 printf("hit; entrance: %f\n", entrance);
                 return -1.0;
             }
-            */
+            
             return entrance;
         }
-
-
+*/
         Vector3 getNormal(Vector3 hitpoint){
            if(hitpoint[0] == this->max[0]){
                return Vector3(1.0f,0.0f,0.0f);
