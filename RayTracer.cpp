@@ -24,6 +24,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "Voxel.h"
 using namespace std;
 
 typedef unsigned char byte;
@@ -61,7 +62,7 @@ int main(int argc, char ** argv)
     Scene scene = loadScene(&objData, argv[2]);
     printf("scene loaded\n");
 
-    RayGenerator rayGen = RayGenerator(*scene.getCamera(), width, height, 90.0);
+    RayGenerator rayGen = RayGenerator(scene.getCamera(), width, height, 90.0);
     #pragma omp parallel for
     for(int i = 0; i<width; i++){
         for(int k = 0; k<height; k++){
@@ -286,7 +287,7 @@ Scene loadScene(objLoader* objData, char* filename){
                 byte to_print = (*voxels)[i * dim*dim + k*dim + j];
                 if(to_print == 1){
                     voxPos = Vector3((float)i, (float)j, (float)k);
-                    AABB* voxel = new AABB(voxPos, 0, 0.5);
+                    Voxel* voxel = new Voxel(voxPos, 0, 0.5);
                     surfaces.push_back(voxel);
                 }
             }
