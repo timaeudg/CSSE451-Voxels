@@ -24,7 +24,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "Voxel.h"
+//#include "Voxel.h"
 using namespace std;
 
 typedef unsigned char byte;
@@ -34,12 +34,11 @@ Vector3 getColor(Ray &ray, Hitpoint &hit, Scene &scene, float paramVal, float cu
 bool traceShadowRay(Scene &scene, Ray &ray, float lightDist);
 Scene loadScene(objLoader* objData, char* filename);
 
-int main(int argc, char ** argv)
-{
-    //buffer
-    int width =  1920;
-    int height = 1080;
+int width = 200;
+int height = 200;
+Scene scene;
 
+void setupScene(int argc, char** argv){
     //need at least one argument (obj file)
     if(argc < 3)
     {
@@ -53,15 +52,16 @@ int main(int argc, char ** argv)
             height = atoi(argv[4]);
         }
     }
-    ToneMapper buf = ToneMapper(width, height);
-    //load camera data
-    
     objLoader objData = objLoader();
     objData.load(argv[1]);
     
-    Scene scene = loadScene(&objData, argv[2]);
-    printf("scene loaded\n");
+    scene = loadScene(&objData, argv[2]);
+    printf("scene loaded\n"); 
+}
 
+Buffer* run()
+{
+    ToneMapper buf = ToneMapper(width, height);
     RayGenerator rayGen = RayGenerator(scene.getCamera(), width, height, 90.0);
     #pragma omp parallel for
     for(int i = 0; i<width; i++){
@@ -85,10 +85,7 @@ int main(int argc, char ** argv)
         }
     }
     Buffer mappedBuf = buf.toneMap();
-
-    simplePPM_write_ppm("test.ppm", mappedBuf.getWidth(), mappedBuf.getHeight(), (unsigned char*)&mappedBuf.at(0,0));
-    
-    return 0;
+    return &mappedBuf;
 }
 
 Vector3 getColor(Ray &ray, Hitpoint &hit, Scene &scene, float paramVal, float cumulativePercent){
@@ -287,7 +284,8 @@ Scene loadScene(objLoader* objData, char* filename){
                 byte to_print = (*voxels)[i * dim*dim + k*dim + j];
                 if(to_print == 1){
                     voxPos = Vector3((float)i, (float)j, (float)k);
-                    Voxel* voxel = new Voxel(voxPos, 0, 0.5);
+//                    Voxel* voxel = new Voxel(voxPos, 0, 0.5);
+                    AABB* voxel = new AABB(voxPos, 0, 0.5);
                     surfaces.push_back(voxel);
                 }
             }
