@@ -31,7 +31,33 @@ public:
             }
             float leftParam;
             float rightParam;
+            float closerParam;
+            AABBNode* otherNode;
+
+            left->getAABBInstersection(ray, &leftParam);
+            right->getAABBInstersection(ray, &rightParam);
+
+
+            AbstractSurface* returnSurface = NULL;
+
+            if(leftParam < rightParam){
+                returnSurface = left->getIntersection(ray, &closerParam);
+                otherNode = right;
+            } else{
+                returnSurface = right->getIntersection(ray, &closerParam);
+                otherNode = left;
+            }
             
+
+            if(returnSurface == NULL || closerParam == -1.0){
+                //Even though we hit the super box, we didn't hit anything inside, so we need to check the other child
+                returnSurface = otherNode->getIntersection(ray, &closerParam);
+            }
+
+            *paramMutate = closerParam;
+            return returnSurface;
+            /*
+
             AbstractSurface* leftSurface = left->getIntersection(ray, &leftParam);
             AbstractSurface* rightSurface = right->getIntersection(ray, &rightParam);
             
@@ -48,10 +74,17 @@ public:
                 *paramMutate =(rightParam < leftParam) ? rightParam : leftParam;
                 return (rightParam < leftParam) ? rightSurface : leftSurface;
             }
+            */
         } else {
             *paramMutate = paramVal;
             return NULL;
         }
+        
+    }
+
+    void getAABBInstersection(Ray& ray, float* paramMutate){
+        float paramVal = this->surface->checkIntersection(ray);
+        *paramMutate = paramVal;
     }
 
 private:
