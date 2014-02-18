@@ -27,26 +27,9 @@ int main(int argc, char** argv)
     sf::RenderWindow window(sf::VideoMode(width, height), "SFML works!");
 
     RayGenerator rayGen = RayGenerator(scene.getCamera(), width, height, 90.0);
-    for(int i = 0; i<width; i++){
-        for(int k = 0; k<height; k++){
-            Ray newRay = rayGen.getRay(i, height-1-k);
+    sf::Clock clock;
+    float lastTime = 0;
 
-            float paramVal = -1.0;
-            AbstractSurface* surface;
-
-            bool hit = scene.getHitpoint(&newRay, &paramVal, &surface);
-            if(hit){
-                Hitpoint hit = Hitpoint(newRay, paramVal, surface);
-                
-                Color pixelColor;
-                Vector3 colorVector = getColor(newRay, hit, scene, paramVal, -1);
-
-                buf.at(i, k) = colorVector;
-            } else{
-                buf.at(i, k) = Vector3(0,0,0);
-            }
-        }
-    }
     while (window.isOpen())
     {
         sf::Event event;
@@ -57,31 +40,59 @@ int main(int argc, char** argv)
         }
 	
         //Buffer* buf = run();
+        
+        for(int i = 0; i<width; i++){
+            for(int k = 0; k<height; k++){
+                Ray newRay = rayGen.getRay(i, height-1-k);
+
+                float paramVal = -1.0;
+                AbstractSurface* surface;
+
+                bool hit = scene.getHitpoint(&newRay, &paramVal, &surface);
+                if(hit){
+                    Hitpoint hit = Hitpoint(newRay, paramVal, surface);
+                
+                    Color pixelColor;
+                    Vector3 colorVector = getColor(newRay, hit, scene, paramVal, -1);
+
+                    buf.at(i, k) = colorVector;
+                } else{
+                    buf.at(i, k) = Vector3(0,0,0);
+                }
+            }
+        }
+        Buffer mappedBuff = buf.toneMap();
+
         sf::Texture tex;
-	tex.create(width, height);
+	    tex.create(width, height);
         sf::Image img;
-	img.create(width, height, sf::Color(0,0,0));
-	sf::Sprite bufferSprite;
+	    img.create(width, height, sf::Color(0,0,0));
+    	sf::Sprite bufferSprite;
 	
 	
         for (int j = 0; j < width; j++)
         {
             for (int i = 0; i < height; i++)
             {
-	      int r = buf.at(j,i)[0];
-	      int g = buf.at(j,i)[1];
-	      int b = buf.at(j,i)[2];
+	      int r = mappedBuff.at(j,i)[0];
+	      int g = mappedBuff.at(j,i)[1];
+	      int b = mappedBuff.at(j,i)[2];
 	      img.setPixel(j,i,sf::Color(r,g,b));
                 //imageColor[j][i] = sf::Color((byte)i, (byte)j, 0);
             }
         }
-	tex.loadFromImage(img);
-	bufferSprite.setTexture(tex);
-	window.clear();
+    	tex.loadFromImage(img);
+	    bufferSprite.setTexture(tex);
+    	window.clear();
 	
         window.draw(bufferSprite);
 
         window.display();
+        float currentTime = clock.getElapsedTime().asSeconds();
+        clock.restart();
+        float fps = 1.0 / (currentTime);
+        lastTime = currentTime;
+        printf("FPS: %f\n", fps);
     }
 
     return 0;
