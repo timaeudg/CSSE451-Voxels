@@ -33,27 +33,27 @@ int main(int argc, char** argv)
             if (event.type == sf::Event::Closed)
                 window.close();
         }
-
-        window.clear();
-
-        Buffer* buf = run();
-
-        sf::Color imageColor[width][height];
+	
+        //Buffer* buf = run();
+        sf::Texture tex;
+	tex.create(width, height);
+        sf::Image img;
+	img.create(width, height, sf::Color(0,0,0));
+	sf::Sprite bufferSprite;
 
         for (int j = 0; j < width; j++)
         {
             for (int i = 0; i < height; i++)
             {
-                imageColor[j][i] = sf::Color((byte)i, (byte)j, 0);
+	      img.setPixel(j,i,sf::Color((byte)i,(byte)j,0));
+                //imageColor[j][i] = sf::Color((byte)i, (byte)j, 0);
             }
         }
-        sf::Image image= sf::Image(imageColor);
-
-        sf::Texture texture = sf::Texture(image);
-
-        sf::Sprite sprite = sf::Sprite(texture);
-
-        window.draw(sprite);
+	tex.loadFromImage(img);
+	bufferSprite.setTexture(tex);
+	window.clear();
+	
+        window.draw(bufferSprite);
 
         window.display();
     }
