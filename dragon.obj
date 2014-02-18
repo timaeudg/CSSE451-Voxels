@@ -1,21 +1,14 @@
 mtllib ./dragon.mtl
 
 # lights
-v 175 150 150
+v 256 256 256 
 usemtl light
 lp -1
 
-v 160 160 150
-usemtl light
-lp -1
-
-v 160 160 150
-usemtl light
-lp -1
 
 #camera
-v 200 200 200
-v 140 106 52
+v 200 100 200
+v 140 100 52
 vn  0 1 0
 g Camera
 c -2 -1 -1

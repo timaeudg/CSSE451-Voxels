@@ -1,6 +1,8 @@
 #include <SFML/Graphics.hpp>
 #include "RayTracer.h"
 
+void handleEvents(sf::RenderWindow & window);
+
 int main(int argc, char** argv)
 {
     int width = 200;
@@ -24,13 +26,7 @@ int main(int argc, char** argv)
 
     while (window.isOpen())
     {
-        sf::Event event;
-        while (window.pollEvent(event))
-        {
-            if (event.type == sf::Event::Closed)
-                window.close();
-        }
-	
+        handleEvents(window);	
         Buffer buf = run()->toneMap();
         
         sf::Texture tex;
@@ -65,4 +61,27 @@ int main(int argc, char** argv)
     
 
     return 0;
+}
+
+void handleEvents(sf::RenderWindow & window)
+{
+	sf::Event Event;
+	while (window.pollEvent(Event))
+	{
+		if (Event.type == sf::Event::Closed)
+			window.close();
+		if(Event.type == sf::Event::KeyPressed && Event.key.code == sf::Keyboard::Left){
+            moveCamera(-1.5, 0.0);
+		}
+        if(Event.type == sf::Event::KeyPressed && Event.key.code == sf::Keyboard::Right){
+            moveCamera(1.5, 0.0);
+        }
+        if(Event.type == sf::Event::KeyPressed && Event.key.code == sf::Keyboard::Up){
+            moveCamera(0.0, -1.5);
+		}
+        if(Event.type == sf::Event::KeyPressed && Event.key.code == sf::Keyboard::Down){
+            moveCamera(0.0, 1.5);
+        }
+
+	}
 }

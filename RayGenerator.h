@@ -25,6 +25,10 @@ class RayGenerator{
             this->distance = (h/2.0)/tan(halfAngle* (3.14159265 / 180.0));
         }
 
+        void updateViewport(Camera *cam){
+            createViewport(cam, this->width, this->height, 90.0);
+        }
+
         Ray getRay(int x, int y){
            float xOffset = (float)(x - (this->width)/2) + 0.5;
            float yOffset = (float)(y - (this->height)/2) + 0.5;

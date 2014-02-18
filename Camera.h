@@ -35,6 +35,25 @@ class Camera{
             this->v = v;
         }
 
+        void moveCamera(float rotVal, float zoomVal, Vector3 & lookAtPoint){
+
+            this->position = this->position + rotVal*this->u;
+            this->position = this->position + zoomVal*this->w;
+
+            Vector3 lookAtVector = (lookAtPoint) - this->position;
+            lookAtVector.normalize();
+
+            Vector3 w = -lookAtVector;
+            Vector3 u = (this->v).cross(w);
+            
+            w.normalize();
+            u.normalize();
+
+            this->w = w;
+            this->u = u;
+
+        }
+
         Vector3 getU(){
             return this->u;
         }

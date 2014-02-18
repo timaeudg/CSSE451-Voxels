@@ -24,7 +24,7 @@
 #include <fstream>
 #include <iostream>
 
-//#include "Voxel.h"
+#include "Voxel.h"
 using namespace std;
 
 typedef unsigned char byte;
@@ -39,6 +39,7 @@ int height = 200;
 Scene scene;
 ToneMapper buf;
 RayGenerator rayGen;
+Vector3 lookAtPoint;
 
 void setupScene(int argc, char** argv){
     //need at least one argument (obj file)
@@ -123,7 +124,7 @@ Vector3 getColor(Ray &ray, Hitpoint &hit, Scene &scene, float paramVal, float cu
         Vector3 diffColor = norm.dot(lightDir) * matDiff * lightDiffuse;
         Vector3 specColor = (lightSpec * matSpec * pow((viewToCamera.dot(lr)), hitObjMat.getExponent()));
 
-        
+       
         //Shadow code
         //get the offset location to prevent shadow acne
         Vector3 offsetHitLoc = hit.getHitpoint(0.9999f);
@@ -134,9 +135,11 @@ Vector3 getColor(Ray &ray, Hitpoint &hit, Scene &scene, float paramVal, float cu
 
         Vector3 combinedColor = ambientColor;
         if(!inShadow){
-            combinedColor = combinedColor+diffColor+specColor;
+            combinedColor = combinedColor+specColor+diffColor;
         }
         summedColor = summedColor + combinedColor;
+        
+        
     }
 
     /*
@@ -208,7 +211,7 @@ Scene loadScene(objLoader* objData, char* filename){
         float yLook = (*objData).vertexList[ (*objData).camera->camera_look_point_index ]->e[1];
         float zLook = (*objData).vertexList[ (*objData).camera->camera_look_point_index ]->e[2];
 
-        Vector3 lookAt = Vector3(xLook, yLook, zLook);
+        lookAtPoint = Vector3(xLook, yLook, zLook);
 
         float xUp =	(*objData).normalList[ (*objData).camera->camera_up_norm_index ]->e[0];
         float yUp =	(*objData).normalList[ (*objData).camera->camera_up_norm_index ]->e[1];
@@ -221,11 +224,11 @@ Scene loadScene(objLoader* objData, char* filename){
         printf(" position: ");
         printf("%f %f %f\n", x, y, z);
         printf(" looking at: ");
-        printf("%f %f %f\n", lookAt[0], lookAt[1], lookAt[2]);
+        printf("%f %f %f\n", lookAtPoint[0], lookAtPoint[1], lookAtPoint[2]);
         printf(" up normal: ");
         printf("%f %f %f\n", xUp, yUp, zUp);
 
-        camera = Camera(&camPos, &lookAt, &up);
+        camera = Camera(&camPos, &lookAtPoint, &up);
     }
 
     if((*objData).materialCount > 0 && (*objData).materialList != NULL){
@@ -286,8 +289,8 @@ Scene loadScene(objLoader* objData, char* filename){
                 byte to_print = (*voxels)[i * dim*dim + k*dim + j];
                 if(to_print == 1){
                     voxPos = Vector3((float)i, (float)j, (float)k);
-//                    Voxel* voxel = new Voxel(voxPos, 0, 0.5);
-                    AABB* voxel = new AABB(voxPos, 0, 0.5);
+                    Voxel* voxel = new Voxel(voxPos, 0, 0.5);
+//                    AABB* voxel = new AABB(voxPos, 0, 0.5);
                     surfaces.push_back(voxel);
                 }
             }
@@ -400,4 +403,12 @@ vector<byte>* read_binvox(string filespec, int* dim){
     vector<byte>* voxelVector = new vector<byte>(voxels, voxels + index);
     free(voxels);
     return voxelVector;
+}
+
+void moveCamera(float rotVal, float zoomVal){
+    
+    scene.getCamera()->moveCamera(rotVal, zoomVal, lookAtPoint);
+
+    rayGen.updateViewport(scene.getCamera());
+
 }
