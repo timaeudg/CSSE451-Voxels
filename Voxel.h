@@ -1,32 +1,32 @@
-#ifndef __AABB
-#define __AABB
+#ifndef __VOXEL
+#define __VOXEL
 
 #include "AbstractSurface.h"
 #include "GenVector.h"
 
-class AABB : public AbstractSurface{
+class Voxel : public AbstractSurface{
 
     public:
-        AABB(){
+        Voxel(){
             this->max = Vector3(-FLT_MAX,-FLT_MAX, -FLT_MAX);
             this->min = Vector3(FLT_MAX, FLT_MAX, FLT_MAX);
             this->materialIndex = 0;
         }
 
-        AABB(Vector3 min, Vector3 max){
+        Voxel(Vector3 min, Vector3 max){
             this->min = min;
             this->max = max;
             this->materialIndex = 0;
         }
 
-        AABB(Vector3 centerPoint, int materialIndex, float radius){
+        Voxel(Vector3 centerPoint, int materialIndex, float radius){
             this->materialIndex = materialIndex;
 
             this->max = Vector3(centerPoint[0]+radius, centerPoint[1]+radius, centerPoint[2]+radius);
             this->min = Vector3(centerPoint[0]-radius, centerPoint[1]-radius, centerPoint[2]-radius);
         }
 
-        ~AABB(){}
+        ~Voxel(){}
         
         Vector3 getBBMin(){
             return this->min;
@@ -120,9 +120,9 @@ class AABB : public AbstractSurface{
             Vector2 intersection = getIntersection(minTx, maxTx, minTy, maxTy);
             intersection = getIntersection(intersection[0], intersection[1], minTz, maxTz);
             
-            //printf("AABB intersection: %f,%f\n", intersection[0], intersection[1]);
+            //printf("Voxel intersection: %f,%f\n", intersection[0], intersection[1]);
 
-            if(intersection[0] > intersection[1]){
+            if(intersection[0] < intersection[1]){
                 return intersection[0];
             } else { 
                 return intersection[1];
@@ -130,49 +130,50 @@ class AABB : public AbstractSurface{
         }
      
 /*
-        float checkIntersection(Ray ray){
-            const size_t vecDim = 3;
-            float entrance = 0.0f;
-            float exit = FLT_MAX;
-            Vector3 normal = Vector3(0,0,0);
+float checkIntersection(Ray ray){
+    const size_t vecDim = 3;
+    float entrance = 0.0f;
+    float exit = FLT_MAX;
+    Vector3 normal = Vector3(0,0,0);
 
-            for(int i = 0; i<vecDim; i++){
-                float slabA = this->min[i];
-                float slabB = this->max[i];
-                float invDir = 1.0f / ray.getDirection()[i];
-                float origin = ray.getOrigin()[i];
+    for(int i = 0; i<vecDim; i++){
+	float slabA = this->min[i];
+	float slabB = this->max[i];
+	float invDir = 1.0f / ray.getDirection()[i];
+	float origin = ray.getOrigin()[i];
 
-                float closestHit = (slabA - origin) * invDir;
-                float farthestHit = (slabB - origin) * invDir;
+	float closestHit = (slabA - origin) * invDir;
+	float farthestHit = (slabB - origin) * invDir;
 
-                if(farthestHit < closestHit){
-                    std::swap(closestHit, farthestHit);
-                }
+	if(farthestHit < closestHit){
+	    std::swap(closestHit, farthestHit);
+	}
 
-                bool tooClose = farthestHit < entrance;
-                bool tooFar = closestHit > exit;
+	bool tooClose = farthestHit < entrance;
+	bool tooFar = closestHit > exit;
 
-                if(tooClose || tooFar){
-                    //printf("closest,exit %f,%f\n", closestHit, exit);
-                    //printf("no hit\n");
-                    return -1.0;
-                }
+	if(tooClose || tooFar){
+	    //printf("closest,exit %f,%f\n", closestHit, exit);
+	    //printf("no hit\n");
+	    return -1.0;
+	}
 
-                bool foundNewEntrance = closestHit > entrance;
-                entrance = foundNewEntrance ? closestHit : entrance;
+	bool foundNewEntrance = closestHit > entrance;
+	entrance = foundNewEntrance ? closestHit : entrance;
 
-                bool foundNewExit = farthestHit < exit;
-                exit = foundNewExit ? farthestHit : exit;
-            }
-            
-            if(entrance == 0.0f){
-                printf("hit; entrance: %f\n", entrance);
-                return -1.0;
-            }
-            
-            return entrance;
-        }
+	bool foundNewExit = farthestHit < exit;
+	exit = foundNewExit ? farthestHit : exit;
+    }
+    
+    if(entrance == 0.0f){
+	printf("hit; entrance: %f\n", entrance);
+	return -1.0;
+    }
+    
+    return entrance;
+}
 */
+
         Vector3 getNormal(Vector3 hitpoint){
            if(hitpoint[0] == this->max[0]){
                return Vector3(1.0f,0.0f,0.0f);
