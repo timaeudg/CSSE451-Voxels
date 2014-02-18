@@ -122,7 +122,7 @@ class AABB : public AbstractSurface{
             
             //printf("AABB intersection: %f,%f\n", intersection[0], intersection[1]);
 
-            if(intersection[0] < intersection[1]){
+            if(intersection[0] > intersection[1]){
                 return intersection[0];
             } else { 
                 return intersection[1];

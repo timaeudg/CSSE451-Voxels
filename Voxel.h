@@ -72,7 +72,7 @@ class Voxel : public AbstractSurface{
             axisVector[2] = max[2]-min[2];
             return axisVector;
         }
-/*
+
         float checkIntersection(Ray ray){
 
             Vector3 origin = ray.getOrigin();
@@ -128,8 +128,8 @@ class Voxel : public AbstractSurface{
                 return intersection[1];
             }
         }
-     */
-
+     
+/*
 float checkIntersection(Ray ray){
     const size_t vecDim = 3;
     float entrance = 0.0f;
@@ -172,6 +172,7 @@ float checkIntersection(Ray ray){
     
     return entrance;
 }
+*/
 
         Vector3 getNormal(Vector3 hitpoint){
            if(hitpoint[0] == this->max[0]){
