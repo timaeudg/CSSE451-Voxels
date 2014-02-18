@@ -3,8 +3,8 @@
 
 int main(int argc, char** argv)
 {
-    int width = 1920;
-    int height = 1080;
+    int width = 200;
+    int height = 200;
     if(argc < 3)
     {
         printf("Usage %s filename.obj, filename.binvox\n", argv[0]);
@@ -18,17 +18,9 @@ int main(int argc, char** argv)
         }
     }
     
-    ToneMapper buf = ToneMapper(width, height);
-    objLoader objData = objLoader();
-    objData.load(argv[1]);
-    
-    Scene scene = loadScene(&objData, argv[2]);
-    printf("scene loaded\n");
     sf::RenderWindow window(sf::VideoMode(width, height), "SFML works!");
-
-    RayGenerator rayGen = RayGenerator(scene.getCamera(), width, height, 90.0);
+    setupScene(argc, argv);
     sf::Clock clock;
-    float lastTime = 0;
 
     while (window.isOpen())
     {
@@ -39,30 +31,8 @@ int main(int argc, char** argv)
                 window.close();
         }
 	
-        //Buffer* buf = run();
+        Buffer buf = run()->toneMap();
         
-        for(int i = 0; i<width; i++){
-            for(int k = 0; k<height; k++){
-                Ray newRay = rayGen.getRay(i, height-1-k);
-
-                float paramVal = -1.0;
-                AbstractSurface* surface;
-
-                bool hit = scene.getHitpoint(&newRay, &paramVal, &surface);
-                if(hit){
-                    Hitpoint hit = Hitpoint(newRay, paramVal, surface);
-                
-                    Color pixelColor;
-                    Vector3 colorVector = getColor(newRay, hit, scene, paramVal, -1);
-
-                    buf.at(i, k) = colorVector;
-                } else{
-                    buf.at(i, k) = Vector3(0,0,0);
-                }
-            }
-        }
-        Buffer mappedBuff = buf.toneMap();
-
         sf::Texture tex;
 	    tex.create(width, height);
         sf::Image img;
@@ -74,11 +44,10 @@ int main(int argc, char** argv)
         {
             for (int i = 0; i < height; i++)
             {
-	      int r = mappedBuff.at(j,i)[0];
-	      int g = mappedBuff.at(j,i)[1];
-	      int b = mappedBuff.at(j,i)[2];
-	      img.setPixel(j,i,sf::Color(r,g,b));
-                //imageColor[j][i] = sf::Color((byte)i, (byte)j, 0);
+    	      int r = buf.at(j,i)[0];
+	          int g = buf.at(j,i)[1];
+	          int b = buf.at(j,i)[2];
+    	      img.setPixel(j,i,sf::Color(r,g,b));
             }
         }
     	tex.loadFromImage(img);
@@ -91,9 +60,9 @@ int main(int argc, char** argv)
         float currentTime = clock.getElapsedTime().asSeconds();
         clock.restart();
         float fps = 1.0 / (currentTime);
-        lastTime = currentTime;
         printf("FPS: %f\n", fps);
     }
+    
 
     return 0;
 }

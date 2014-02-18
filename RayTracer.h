@@ -37,6 +37,8 @@ Scene loadScene(objLoader* objData, char* filename);
 int width = 200;
 int height = 200;
 Scene scene;
+ToneMapper buf;
+RayGenerator rayGen;
 
 void setupScene(int argc, char** argv){
     //need at least one argument (obj file)
@@ -57,12 +59,13 @@ void setupScene(int argc, char** argv){
     
     scene = loadScene(&objData, argv[2]);
     printf("scene loaded\n"); 
+    buf = ToneMapper(width, height);
+    rayGen = RayGenerator(scene.getCamera(), width, height, 90.0);
+
 }
 
-Buffer* run()
+ToneMapper* run()
 {
-    ToneMapper buf = ToneMapper(width, height);
-    RayGenerator rayGen = RayGenerator(scene.getCamera(), width, height, 90.0);
     #pragma omp parallel for
     for(int i = 0; i<width; i++){
         for(int k = 0; k<height; k++){
@@ -84,8 +87,7 @@ Buffer* run()
             }
         }
     }
-    Buffer mappedBuf = buf.toneMap();
-    return &mappedBuf;
+    return &buf;
 }
 
 Vector3 getColor(Ray &ray, Hitpoint &hit, Scene &scene, float paramVal, float cumulativePercent){
